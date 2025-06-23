@@ -1,30 +1,39 @@
-console.log("Hallajen");
-const factsList = document.getElementById('factsList')
+const loadMore = document.getElementById('loadMore')
+let num = 0
 
-// Funksjon som henter og tar i mot data fra en Cat Facts API
 
-async function fetchFacts() {
-    const fetchData = await fetch('https://catfact.ninja/facts')
-    const parse = await fetchData.json()
-    return parse
+async function getJson(url) {
+    const fetchData = await fetch(url)
+    const data = await fetchData.json()
+    return data
 }
 
-async function displayFacts() {
-    const response = await fetchFacts()
-    console.log(response)
- 
-    const catFacts =  response.data
-    console.log(catFacts)
+async function displayPokemon() {
+    const response = await getJson(`https://pokeapi.co/api/v2/pokemon?offset=${num}&limit=21`)
+    const pokemonList = response.results
 
-    catFacts.forEach(item => {
-        const li = document.createElement('li')
+    const pokeContainer = document.getElementById('pokeContainer')
 
-        const factItem = item.fact
-        li.textContent = factItem
-
-        factsList.appendChild(li)
-    });
-
+    if (pokemonList && pokemonList.length > 0) {
+        for (const p of pokemonList) {
+            const details = await getJson(p.url)
+            const card = `
+                <div class="pokeCards">
+                    <h1>${details.name}</h1>
+                    <h2># ${details.id}</h2>
+                    <img src="${details.sprites.front_shiny}" alt="${details.name}" />
+                </div>
+            `
+            pokeContainer.innerHTML += card
+        }
+    } else {
+        pokeContainer.textContent = 'error 404'
+    }
 }
+displayPokemon()
 
-displayFacts()
+loadMore.addEventListener('click', () => {
+    num += 21
+    displayPokemon()
+})
+
